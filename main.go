@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+  "github.com/robfig/cron/v3"
 	_ "github.com/lib/pq"
 )
 
@@ -45,37 +45,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	for {
-		db, err := connectToDatabase()
-		if err != nil {
-			log.Println("[ERROR] Error connecting to database", err)
-			os.Exit(1)
-		}
-		defer db.Close()
+  c := cron.New()
 
-		_, err = db.Exec(`
-      CREATE TABLE IF NOT EXISTS instances (
-        id TEXT NOT NULL PRIMARY KEY,
-        timestamp TEXT,
-        instanceid TEXT,
-        name TEXT,
-        status TEXT,
-        createdat TEXT,
-        flavorid TEXT,
-        tenantid TEXT,
-        hostid TEXT,
-        userid TEXT
-      )
-    `)
-		log.Println("[INFO] Saving instances on database")
-		saveInstancesToDatabase(client, db)
-		timer, err := strconv.Atoi(os.Getenv("TIMER"))
-		if err != nil {
-			log.Println("[ERROR] Error converting timer to integer", err)
-			os.Exit(1)
-		}
-		time.Sleep(time.Duration(timer) * time.Minute)
-	}
+  db, err := connectToDatabase()
+    if err != nil {
+      log.Println("[ERROR] Error connecting to database", err)
+      return
+    }
+  defer db.Close()
+
+  _, err = c.AddFunc("@every "+os.Getenv("TIMER")+"m", func() {
+    saveInstancesToDatabase(client, db)
+  })
+
+  if err != nil {
+    log.Println("[ERROR] Error scheduling cron job:", err)
+    os.Exit(1)
+  }
+
+  c.Start()
+  select {}
 }
 
 func connectToDatabase() (*sql.DB, error) {
@@ -95,6 +84,26 @@ func connectToDatabase() (*sql.DB, error) {
 }
 
 func saveInstancesToDatabase(client *gophercloud.ServiceClient, db *sql.DB) {
+  _, err := db.Exec(`
+      CREATE TABLE IF NOT EXISTS instances (
+        id TEXT NOT NULL PRIMARY KEY,
+        timestamp TEXT,
+        instanceid TEXT,
+        name TEXT,
+        status TEXT,
+        createdat TEXT,
+        flavorid TEXT,
+        tenantid TEXT,
+        hostid TEXT,
+        userid TEXT
+      )
+    `)
+
+  if err != nil {
+    log.Println("[ERROR] Error writing table instances")
+    return
+  }
+
 	listOpts := servers.ListOpts{
 		AllTenants: true,
 	}
@@ -114,11 +123,11 @@ func saveInstancesToDatabase(client *gophercloud.ServiceClient, db *sql.DB) {
 
 	timestamp := time.Now()
 	for _, instance := range instanceList {
-
 		_, err := db.Exec("INSERT INTO instances (id, timestamp, instanceid, name, status, createdat, flavorid, tenantid, hostid, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
 			uuid.New(), timestamp, instance.ID, instance.Name, instance.Status, instance.Created, instance.Flavor["id"], instance.TenantID, instance.HostID, instance.UserID)
 		if err != nil {
 			log.Println("[ERROR] Error inserting instance data:", err)
 		}
 	}
+  log.Println("[INFO] Instances saved on database")
 }
