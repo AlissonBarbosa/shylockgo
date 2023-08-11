@@ -47,6 +47,9 @@ func main() {
     }
   defer db.Close()
 
+  saveInstancesToDatabase(provider, db)
+  saveProjectsToDatabase(provider, db)
+
   _, err = c.AddFunc("@every "+os.Getenv("TIMER")+"m", func() {
     saveInstancesToDatabase(provider, db)
   })
@@ -56,7 +59,7 @@ func main() {
     os.Exit(1)
   }
 
-  _, err = c.AddFunc("@every 17h", func() {
+  _, err = c.AddFunc("@hourly", func() {
     saveProjectsToDatabase(provider, db)
   })
 
@@ -89,6 +92,7 @@ func saveInstancesToDatabase(provider *gophercloud.ProviderClient, db *sql.DB) {
       CREATE TABLE IF NOT EXISTS instances (
         id TEXT NOT NULL PRIMARY KEY,
         timestamp TEXT,
+        epoch BIGINT,
         instanceid TEXT,
         name TEXT,
         status TEXT,
@@ -132,8 +136,8 @@ func saveInstancesToDatabase(provider *gophercloud.ProviderClient, db *sql.DB) {
 
 	timestamp := time.Now()
 	for _, instance := range instanceList {
-		_, err := db.Exec("INSERT INTO instances (id, timestamp, instanceid, name, status, createdat, flavorid, tenantid, hostid, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-			uuid.New(), timestamp, instance.ID, instance.Name, instance.Status, instance.Created, instance.Flavor["id"], instance.TenantID, instance.HostID, instance.UserID)
+		_, err := db.Exec("INSERT INTO instances (id, timestamp, epoch, instanceid, name, status, createdat, flavorid, tenantid, hostid, userid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+			uuid.New(), timestamp, timestamp.Unix() ,instance.ID, instance.Name, instance.Status, instance.Created, instance.Flavor["id"], instance.TenantID, instance.HostID, instance.UserID)
 		if err != nil {
 			log.Println("[ERROR] Error inserting instance data:", err)
 		}
@@ -146,6 +150,7 @@ func saveProjectsToDatabase(provider *gophercloud.ProviderClient, db *sql.DB) {
       CREATE TABLE IF NOT EXISTS projects (
         id TEXT NOT NULL PRIMARY KEY,
         timestamp TEXT,
+        epoch BIGINT,
         projectid TEXT,
         name TEXT,
         description TEXT,
@@ -180,8 +185,8 @@ func saveProjectsToDatabase(provider *gophercloud.ProviderClient, db *sql.DB) {
 
   timestamp := time.Now()
   for _, project := range projectList {
-    _, err := db.Exec("INSERT INTO projects (id, timestamp, projectid, name, description, domainid) VALUES ($1, $2, $3, $4, $5, $6)",
-      uuid.New(), timestamp, project.ID, project.Name, project.Description, project.DomainID)
+    _, err := db.Exec("INSERT INTO projects (id, timestamp, epoch, projectid, name, description, domainid) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      uuid.New(), timestamp, timestamp.Unix(), project.ID, project.Name, project.Description, project.DomainID)
     if err != nil {
       log.Println("[ERROR] Error inserting project data:", err)
     }
