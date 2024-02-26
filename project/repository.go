@@ -1,17 +1,18 @@
 package project
 
 import (
-  "os"
-  "time"
-  "regexp"
+	"fmt"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/AlissonBarbosa/shylockgo/models"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
-	"github.com/gophercloud/gophercloud/openstack/identity/v3/projects"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/quotasets"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/usage"
+	"github.com/gophercloud/gophercloud/openstack/identity/v3/projects"
 	"github.com/gophercloud/gophercloud/pagination"
-
 )
 
 func GetProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, error) {
@@ -99,4 +100,43 @@ func GetProjectUsage(provider *gophercloud.ProviderClient, projectID string) (*m
   projectSumUsage := models.ProjectSumUsage{VcpuUsage: VCPUSum, RAMUsage: MemorySum}
 
   return &projectSumUsage, err
+}
+
+func GetSponsorSummary(provider *gophercloud.ProviderClient) (map[string]models.UsageReport, error) {
+  
+  projects, err := GetProjects(provider)
+  if err != nil {
+    return nil, err
+  }
+
+  aggregateReports := make(map[string]models.UsageReport)
+
+  for _, projectData := range projects {
+    quotas, err := GetProjectQuota(provider, projectData.ID)
+    if err != nil {
+      fmt.Println("[ERROR] Error getting project quota", err)
+      continue
+    }
+
+    projectUsage, err := GetProjectUsage(provider, projectData.ID)
+    if err != nil {
+      fmt.Println("[ERROR] Error getting project usage", err)
+      continue
+    }
+    timestamp, _ := time.Now().MarshalText()
+
+    report, ok := aggregateReports[projectData.Sponsor]
+    if !ok {
+      report = models.UsageReport{Timestamp: string(timestamp), Sponsor: projectData.Sponsor}
+    }
+
+    report.VCPUQuota += quotas.Cores
+    report.VCPUUsage += projectUsage.VcpuUsage
+    report.RAMQuota += quotas.RAM
+    report.RAMUsage += projectUsage.RAMUsage
+
+    aggregateReports[projectData.Sponsor] = report
+  }
+
+  return aggregateReports, nil
 }

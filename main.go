@@ -1,54 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"time"
+	"net/http"
 
 	"github.com/AlissonBarbosa/shylockgo/common"
-	"github.com/AlissonBarbosa/shylockgo/models"
 	"github.com/AlissonBarbosa/shylockgo/project"
+	"github.com/gin-gonic/gin"
 )
 
 func main()  {
-  provider, err := common.GetProvider()
-  if err != nil {
-    fmt.Println("[ERROR] Error getting provider")
-    os.Exit(1)
-  }
-  projects, err := project.GetProjects(provider)
-  if err != nil {
-    fmt.Println(err)
-  }
+  router := gin.Default()
 
-  aggregateReports := make(map[string]models.UsageReport)
-
-  for _, projectData := range projects {
-    quotas, err := project.GetProjectQuota(provider, projectData.ID)
+  router.GET("/quota-summary", func (c *gin.Context)  {
+    provider, err := common.GetProvider()
     if err != nil {
-      fmt.Println("[ERROR] Error getting project quota")
+      c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting provider"})
+      return
     }
-    projectUsage, err := project.GetProjectUsage(provider, projectData.ID)
+
+    sponsorSummary, err := project.GetSponsorSummary(provider)
     if err != nil {
-      fmt.Println("[ERROR] Error getting project usage")
-    }
-    timestamp, _ := time.Now().MarshalText()
-
-    report, ok := aggregateReports[projectData.Sponsor]
-    if !ok {
-      report = models.UsageReport{Timestamp: string(timestamp), Sponsor: projectData.Sponsor}
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
     }
 
-    report.VCPUQuota += quotas.Cores
-    report.VCPUUsage += projectUsage.VcpuUsage
-    report.RAMQuota += quotas.RAM
-    report.RAMUsage += projectUsage.RAMUsage
+    c.JSON(http.StatusOK, sponsorSummary)
+    
+  })
+  
+  router.Run("localhost:8080")
 
-    aggregateReports[projectData.Sponsor] = report
-  }
-
-  fmt.Printf("Timestamp;Sponsor;vCPUQuota;vCPUUsage;RAMQuota;RAMUsage\n")
-  for sponsor, report := range aggregateReports {
-    fmt.Printf("%s;%s;%d;%d;%d;%d\n", report.Timestamp, sponsor, report.VCPUQuota, report.VCPUUsage, report.RAMQuota, report.RAMUsage)
-  }
 }
