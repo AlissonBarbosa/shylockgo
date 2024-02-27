@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AlissonBarbosa/shylockgo/common"
-	"github.com/AlissonBarbosa/shylockgo/project"
+	"github.com/AlissonBarbosa/shylockgo/controllers"
 	"github.com/gin-gonic/gin"
   "github.com/gin-contrib/cors"
 )
