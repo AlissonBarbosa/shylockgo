@@ -6,10 +6,14 @@ import (
 	"github.com/AlissonBarbosa/shylockgo/common"
 	"github.com/AlissonBarbosa/shylockgo/project"
 	"github.com/gin-gonic/gin"
+  "github.com/gin-contrib/cors"
 )
 
 func main()  {
   router := gin.Default()
+  config := cors.DefaultConfig()
+  config.AllowOrigins = []string{"*"}
+  router.Use(cors.New(config))
 
   router.GET("/quota-summary", func (c *gin.Context)  {
     provider, err := common.GetProvider()
@@ -28,6 +32,6 @@ func main()  {
     
   })
   
-  router.Run("localhost:8080")
+  router.Run("0.0.0.0:8080")
 
 }
