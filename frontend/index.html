@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quota Summary</title>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+</head>
+<body>
+
+<table id="quota-table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Timestamp</th>
+            <th>Sponsor</th>
+            <th>VCPUQuota</th>
+            <th>VCPUUsage</th>
+            <th>RAMQuota</th>
+            <th>RAMUsage</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "http://localhost:5001/quota-summary",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $.each(data, function(username, userData) {
+                $.each(userData, function(index, user) {
+                    var row = `<tr>
+                                <td>${username}</td>
+                                <td>${user.timestamp}</td>
+                                <td>${user.sponsor}</td>
+                                <td>${user.vcpu_quota}</td>
+                                <td>${user.vcpu_usage}</td>
+                                <td>${user.ram_quota}</td>
+                                <td>${user.ram_usage}</td>
+                              </tr>`;
+                    $('#quota-table tbody').append(row);
+                });
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error(status + ": " + error);
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+

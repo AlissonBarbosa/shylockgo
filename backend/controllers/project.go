@@ -102,41 +102,74 @@ func GetProjectUsage(provider *gophercloud.ProviderClient, projectID string) (*m
   return &projectSumUsage, err
 }
 
-func GetSponsorSummary(provider *gophercloud.ProviderClient) (map[string]models.UsageReport, error) {
-  
+func SaveProjectSummary(provider *gophercloud.ProviderClient) error {
   projects, err := GetProjects(provider)
   if err != nil {
-    return nil, err
+    return err
   }
 
-  aggregateReports := make(map[string]models.UsageReport)
+
+  timestamp := time.Now()
 
   for _, projectData := range projects {
     quotas, err := GetProjectQuota(provider, projectData.ID)
     if err != nil {
       fmt.Println("[ERROR] Error getting project quota", err)
-      continue
+      return err
     }
 
     projectUsage, err := GetProjectUsage(provider, projectData.ID)
     if err != nil {
       fmt.Println("[ERROR] Error getting project usage", err)
-      continue
-    }
-    timestamp, _ := time.Now().MarshalText()
-
-    report, ok := aggregateReports[projectData.Sponsor]
-    if !ok {
-      report = models.UsageReport{Timestamp: string(timestamp), Sponsor: projectData.Sponsor}
+      return err
     }
 
-    report.VCPUQuota += quotas.Cores
-    report.VCPUUsage += projectUsage.VcpuUsage
-    report.RAMQuota += quotas.RAM
-    report.RAMUsage += projectUsage.RAMUsage
+    report := models.UsageReport{Timestamp: timestamp, Sponsor: projectData.Sponsor, ProjectName: projectData.Name,
+      VCPUQuota: quotas.Cores, VCPUUsage: projectUsage.VcpuUsage, RAMQuota: quotas.RAM, RAMUsage: projectUsage.RAMUsage}
 
-    aggregateReports[projectData.Sponsor] = report
+    models.DB.Create(&report)
+
   }
 
-  return aggregateReports, nil
+  return nil
+
 }
+
+//func GetSponsorSummary(provider *gophercloud.ProviderClient) (map[string]models.UsageReport, error) {
+//  
+//  projects, err := GetProjects(provider)
+//  if err != nil {
+//    return nil, err
+//  }
+//
+//  aggregateReports := make(map[string]models.UsageReport)
+//
+//  for _, projectData := range projects {
+//    quotas, err := GetProjectQuota(provider, projectData.ID)
+//    if err != nil {
+//      fmt.Println("[ERROR] Error getting project quota", err)
+//      continue
+//    }
+//
+//    projectUsage, err := GetProjectUsage(provider, projectData.ID)
+//    if err != nil {
+//      fmt.Println("[ERROR] Error getting project usage", err)
+//      continue
+//    }
+//    timestamp, _ := time.Now().MarshalText()
+//
+//    report, ok := aggregateReports[projectData.Sponsor]
+//    if !ok {
+//      report = models.UsageReport{Timestamp: &timestamp, Sponsor: projectData.Sponsor}
+//    }
+//
+//    report.VCPUQuota += quotas.Cores
+//    report.VCPUUsage += projectUsage.VcpuUsage
+//    report.RAMQuota += quotas.RAM
+//    report.RAMUsage += projectUsage.RAMUsage
+//
+//    aggregateReports[projectData.Sponsor] = report
+//  }
+//
+//  return aggregateReports, nil
+//}
