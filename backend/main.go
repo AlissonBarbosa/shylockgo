@@ -40,9 +40,10 @@ func main()  {
   router.GET("/quota-summary", func (c *gin.Context)  {
     var reports []models.ReportSummary
 
-    models.DB.Table("usage_reports").
-      Select("sponsor, MAX(timestamp) as timestamp, SUM(v_cpu_quota) as v_cpu_quota, SUM(v_cpu_usage) as v_cpu_usage, SUM(ram_quota) as ram_quota, SUM(ram_usage) as ram_usage").
-      Group("sponsor").Scan(&reports)
+    models.DB.Table("(SELECT sponsor, MAX(timestamp) AS latest_timestamp FROM usage_reports GROUP BY sponsor) AS subquery").
+      Select("subquery.latest_timestamp, subquery.sponsor, SUM(v_cpu_quota) AS v_cpu_quota, SUM(v_cpu_usage) AS v_cpu_usage, SUM(ram_quota) AS ram_quota, SUM(ram_usage) AS ram_usage").
+      Joins("JOIN usage_reports ON usage_reports.sponsor = subquery.sponsor AND usage_reports.timestamp = subquery.latest_timestamp").
+      Group("subquery.sponsor, subquery.latest_timestamp").Scan(&reports)
 
     aggregatedReports := make(map[string][]models.ReportSummary)
 

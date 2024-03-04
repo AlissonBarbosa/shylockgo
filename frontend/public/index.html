@@ -25,7 +25,6 @@
     <thead>
         <tr>
             <th>Username</th>
-            <th>Timestamp</th>
             <th>Sponsor</th>
             <th>VCPUQuota</th>
             <th>VCPUUsage</th>
@@ -49,7 +48,6 @@ $(document).ready(function() {
                 $.each(userData, function(index, user) {
                     var row = `<tr>
                                 <td>${username}</td>
-                                <td>${user.timestamp}</td>
                                 <td>${user.sponsor}</td>
                                 <td>${user.vcpu_quota}</td>
                                 <td>${user.vcpu_usage}</td>
