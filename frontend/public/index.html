@@ -24,7 +24,6 @@
 <table id="quota-table">
     <thead>
         <tr>
-            <th>Username</th>
             <th>Sponsor</th>
             <th>VCPUQuota</th>
             <th>VCPUUsage</th>
@@ -48,7 +47,6 @@ $(document).ready(function() {
                 $.each(userData, function(index, user) {
                     var row = `<tr>
                                 <td>${username}</td>
-                                <td>${user.sponsor}</td>
                                 <td>${user.vcpu_quota}</td>
                                 <td>${user.vcpu_usage}</td>
                                 <td>${user.ram_quota}</td>
