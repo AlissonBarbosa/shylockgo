@@ -9,6 +9,17 @@ type ServerData struct {
   MemoryUsage int64 `json:"memory_usage"`
 }
 
+type ServerMeta struct {
+  ID uint `gorm:"primaryKey"`
+  Epoch int64 `json:"epoch"`
+  ServerID string `json:"id"`
+  Name string `json:"name"`
+  ProjectID string `json:"project_id"`
+  HostID string `json:"host_id"`
+  Domain string `json:"domain"`
+  MemoryUsage int64 `json:"memory_usage"`
+}
+
 type DomainQueryResponse struct {
   Status string `json:"status"`
     Data   struct {
