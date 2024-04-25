@@ -22,6 +22,7 @@ func ConnectDatabase() {
   }
 
   database.AutoMigrate(&UsageReport{})
+  database.AutoMigrate(&ServerMeta{})
 
   DB = database
 }

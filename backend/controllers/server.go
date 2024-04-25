@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"time"
 
 	"net/http"
 	"net/url"
@@ -56,6 +57,50 @@ func GetAllServers(provider *gophercloud.ProviderClient) ([]models.ServerData, e
     //fmt.Printf("%+v\n", server)
   }
   return serverListOutput, nil
+}
+
+func SaveAllServers(provider *gophercloud.ProviderClient) error {
+  client, err := openstack.NewComputeV2(provider, gophercloud.EndpointOpts{})
+  if err != nil {
+    return err
+  }
+
+  listOpts := servers.ListOpts{
+    AllTenants: true,
+  }
+  rows, err := servers.List(client, listOpts).AllPages()
+  if err != nil {
+    return err
+  }
+
+  serverList, err := servers.ExtractServers(rows)
+  if err != nil {
+    return err
+  }
+
+  epoch := time.Now().Unix()
+
+  for _, server := range serverList {
+    domain, err := GetServerDomain(server.ID)
+    if err != nil {
+      return err
+    }
+
+    memoryUsage, err := GetServerMemoryUsage(domain)
+    if err != nil {
+      return err
+    }
+    memoryConverted, err := strconv.ParseFloat(memoryUsage, 64)
+    if err != nil {
+      return err
+    }
+
+    report := models.ServerMeta{ServerID: server.ID,
+      Name: server.Name, ProjectID : server.TenantID, HostID: server.HostID,
+      Domain: domain, MemoryUsage: int64(memoryConverted), Epoch: epoch}
+    models.DB.Create(&report)
+  }
+  return nil
 }
 
 // TODO: Write a generic funcion in common receiving model

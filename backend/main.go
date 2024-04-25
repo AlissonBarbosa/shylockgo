@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/AlissonBarbosa/shylockgo/common"
 	"github.com/AlissonBarbosa/shylockgo/controllers"
@@ -21,14 +22,29 @@ func main()  {
     return
   }
 
+  controllers.SaveProjectSummary(provider)
+  time.Sleep(1 * time.Minute)
+  controllers.SaveAllServers(provider)
+
+
   c := cron.New()
-  _, err = c.AddFunc("*/2 * * * *", func(){
+
+  _, err = c.AddFunc("*/30 * * * *", func(){
     controllers.SaveProjectSummary(provider)
   })
   if err != nil {
     fmt.Println("Error adding task", err)
     return
   }
+
+  _, err = c.AddFunc("*/31 * * * *", func(){
+    controllers.SaveAllServers(provider)
+  })
+  if err != nil {
+    fmt.Println("Error adding task", err)
+    return
+  }
+
   c.Start()
 
   router := gin.Default()
