@@ -22,8 +22,8 @@ func main()  {
   }
 
   c := cron.New()
-  _, err = c.AddFunc("*/50 * * * *", func(){
-    project.SaveProjectSummary(provider)
+  _, err = c.AddFunc("*/2 * * * *", func(){
+    controllers.SaveProjectSummary(provider)
   })
   if err != nil {
     fmt.Println("Error adding task", err)
@@ -59,6 +59,23 @@ func main()  {
 
     c.JSON(http.StatusOK, aggregatedReports)
     
+  })
+
+  router.GET("/servers", func (c *gin.Context) {
+    var servers []models.ServerData
+    servers, err = controllers.GetAllServers(provider)
+    if err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{
+        "status": "error",
+        "message": "Something wrong on server side",
+      })
+      return
+    }
+    c.JSON(http.StatusOK, gin.H{
+      "status": "success",
+      "data": servers,
+      "message": "Success",
+    })
   })
   
   router.Run("0.0.0.0:5000")
