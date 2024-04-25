@@ -1,31 +1,33 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:16.2
-    container_name: db
-    restart: always
-    env_file:
-      - ./backend/.env
-    volumes:
-      - ./backend/data/postgres:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:16.2
+  #   container_name: db
+  #   restart: always
+  #   env_file:
+  #     - ./backend/.env
+  #   volumes:
+  #     - ./backend/data/postgres:/var/lib/postgresql/data
   shylockgo:
     build:
       context: backend/
-    image: shylockgo:0.0.2
+    image: shylockgo:0.0.3
     container_name: shylockgo
     hostname: shylockgo
     restart: always
-    depends_on:
-      - db
+      # depends_on:
+      #   - db
     env_file:
       - ./backend/.env
     ports:
       - 5001:5000
-  apache:
-    image: httpd:latest
-    container_name: apache
-    ports:
-      - 8080:80
     volumes:
-      - ./frontend/public/:/usr/local/apache2/htdocs
+      - ./backend/data/sqlite/:/var/lib/shylockgo/
+        # apache:
+        #   image: httpd:latest
+        #   container_name: apache
+        #   ports:
+        #     - 8080:80
+        #   volumes:
+        #     - ./frontend/public/:/usr/local/apache2/htdocs
