@@ -67,18 +67,12 @@ func main()  {
       aggregatedReports[report.Sponsor] = append(aggregatedReports[report.Sponsor], report)
     }
 
-    //sponsorSummary, err := project.GetSponsorSummary(provider)
-    //if err != nil {
-    //  c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-    //  return
-    //}
-
     c.JSON(http.StatusOK, aggregatedReports)
     
   })
 
   router.GET("/servers", func (c *gin.Context) {
-    var servers []models.ServerData
+    var servers []models.ServerMeta
     servers, err = controllers.GetAllServers(provider)
     if err != nil {
       c.JSON(http.StatusInternalServerError, gin.H{

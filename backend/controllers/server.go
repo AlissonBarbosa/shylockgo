@@ -17,46 +17,14 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 )
 
-func GetAllServers(provider *gophercloud.ProviderClient) ([]models.ServerData, error) {
-  var serverListOutput []models.ServerData
-  client, err := openstack.NewComputeV2(provider, gophercloud.EndpointOpts{})
-  if err != nil {
-    return nil, err
-  }
+func GetAllServers(provider *gophercloud.ProviderClient) ([]models.ServerMeta, error) {
+  var allServersMeta []models.ServerMeta
+  var maxEpoch int64
 
-  listOpts := servers.ListOpts{
-    AllTenants: true,
-  }
-  rows, err := servers.List(client, listOpts).AllPages()
-  if err != nil {
-    return nil, err
-  }
+  models.DB.Model(&models.ServerMeta{}).Select("MAX(epoch)").Scan(&maxEpoch)
+  models.DB.Where("epoch = ?", maxEpoch).Find(&allServersMeta)
 
-  serverList, err := servers.ExtractServers(rows)
-  if err != nil {
-    return nil, err
-  }
-
-  for _, server := range serverList {
-    domain, err := GetServerDomain(server.ID)
-    if err != nil {
-      return nil, err
-    }
-
-    memoryUsage, err := GetServerMemoryUsage(domain)
-    if err != nil {
-      return nil, err
-    }
-    memoryConverted, err := strconv.ParseFloat(memoryUsage, 64)
-    if err != nil {
-      return nil, err
-    }
-    serverListOutput = append(serverListOutput, models.ServerData{ID: server.ID,
-      Name: server.Name, ProjectID : server.TenantID, HostID: server.HostID,
-      Domain: domain, MemoryUsage: int64(memoryConverted)})
-    //fmt.Printf("%+v\n", server)
-  }
-  return serverListOutput, nil
+  return allServersMeta, nil
 }
 
 func SaveAllServers(provider *gophercloud.ProviderClient) error {
