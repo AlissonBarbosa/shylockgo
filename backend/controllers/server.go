@@ -1,15 +1,11 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 	"time"
 
-	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/AlissonBarbosa/shylockgo/models"
 	"github.com/gophercloud/gophercloud"
@@ -71,74 +67,34 @@ func SaveAllServers(provider *gophercloud.ProviderClient) error {
   return nil
 }
 
-// TODO: Write a generic funcion in common receiving model
 func GetServerDomain(id string) (string, error) {
   query := fmt.Sprintf("libvirt_domain_info_meta{uuid='%s'}", url.QueryEscape(id))
-  prometheus_url := fmt.Sprintf("%s:%s/api/v1/query?query=%s", os.Getenv("PROMETHEUS_URL"), os.Getenv("PROMETHEUS_PORT"), query)
-  resp, err := http.Get(prometheus_url)
-  if err != nil {
-    return "Error", err
-  }
-  defer resp.Body.Close()
-  
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-    return "Error", err
-  }
-
-  var response models.DomainQueryResponse
-  err = json.Unmarshal(body, &response)
-  if err != nil {
-    return "Error", err
+  result := QueryGetPrometheus(query)
+  if result.Error != nil {
+    return "Error", result.Error
   }
   domain := "None"
-  if len(response.Data.Result) > 0 {
-    domain = response.Data.Result[0].Metric.Domain
+  if len(result.Data.(models.QueryResponse).Data.Result) > 0 {
+    if result.Data.(models.QueryResponse).Data.Result[0].Metric.Domain != "" {
+      domain = fmt.Sprintf("%v", result.Data.(models.QueryResponse).Data.Result[0].Metric.Domain)
+    }
   }
 
   return domain, nil
 }
 
-//func GetServerMemoryUsage(domain string) (string, error) {
-//  query := fmt.Sprintf("libvirt_domain_memory_stats_used_percent{domain='%s'}'", url.QueryEscape(domain))
-//  result := QueryGetPrometheus(query)
-//  if result.Error != nil {
-//    return "Error", result.Error
-//  }
-//  fmt.Println(result)
-//  memoryUsage := "None"
-//  if len(result.Data.(models.QueryResponse).Data.Result) > 0 {
-//    fmt.Printf("%v", result.Data.(models.QueryResponse).Data.Result)
-//    if len(result.Data.(models.QueryResponse).Data.Result[0].Value) > 1 {
-//      memoryUsage = fmt.Sprintf("%v",result.Data.(models.QueryResponse).Data.Result[0].Value[1])
-//    }
-//  }
-//
-//  return memoryUsage, nil
-//}
-
 func GetServerMemoryUsage(domain string) (string, error) {
   query := fmt.Sprintf("libvirt_domain_memory_stats_used_percent{domain='%s'}", url.QueryEscape(domain))
-  prometheus_url := fmt.Sprintf("%s:%s/api/v1/query?query=%s", os.Getenv("PROMETHEUS_URL"), os.Getenv("PROMETHEUS_PORT"), query)
-  resp, err := http.Get(prometheus_url)
-  if err != nil {
-    return "Error", err
+  result := QueryGetPrometheus(query)
+  if result.Error != nil {
+    return "Error", result.Error
   }
-  defer resp.Body.Close()
-  
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-    return "Error", err
+  memoryUsage := "None"
+  if len(result.Data.(models.QueryResponse).Data.Result) > 0 {
+    if len(result.Data.(models.QueryResponse).Data.Result[0].Value) > 1 {
+      memoryUsage = fmt.Sprintf("%v",result.Data.(models.QueryResponse).Data.Result[0].Value[1])
+    }
   }
 
-  var response models.QueryResponse
-  err = json.Unmarshal(body, &response)
-  if err != nil {
-    return "Error", err
-  }
-  memoryUsage := "none"
-  if len(response.Data.Result) > 0 {
-    memoryUsage = fmt.Sprintf("%v", response.Data.Result[0].Value[1]) 
-  }
   return memoryUsage, nil
 }

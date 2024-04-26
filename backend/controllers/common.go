@@ -14,7 +14,6 @@ import (
 
 func QueryGetPrometheus(query string) models.QueryResult {
   prometheus_url := fmt.Sprintf("%s:%s/api/v1/query?query=%s", os.Getenv("PROMETHEUS_URL"), os.Getenv("PROMETHEUS_PORT"), query)
-  fmt.Println(prometheus_url)
   resp, err := http.Get(prometheus_url)
   if err != nil {
     return models.QueryResult{Query: query, Data: nil, Error: fmt.Errorf("Error: %v", err)}
