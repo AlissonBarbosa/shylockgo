@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/AlissonBarbosa/shylockgo/common"
 	"github.com/AlissonBarbosa/shylockgo/controllers"
@@ -21,9 +20,9 @@ func main()  {
     fmt.Println("Error getting provider")
     return
   }
-
+  
+  // Populate database on start
   controllers.SaveProjectSummary(provider)
-  time.Sleep(1 * time.Minute)
   controllers.SaveAllServers(provider)
 
 
