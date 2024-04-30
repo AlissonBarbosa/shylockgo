@@ -1,5 +1,5 @@
 # stage build
-FROM golang:1.22.0 AS build
+FROM golang:1.22.2 AS build
 
 WORKDIR /shylockgo
 
@@ -13,6 +13,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o shylockgo main.go
 
 # final image
 FROM alpine:latest
+
+RUN apk add --no-cache tzdata
+ENV TZ=America/Recife
 
 WORKDIR /shylockgo
 

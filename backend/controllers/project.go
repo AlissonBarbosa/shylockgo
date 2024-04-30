@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"fmt"
+	//"fmt"
+	"log/slog"
 	"os"
 	"regexp"
 	"time"
@@ -15,11 +16,11 @@ import (
 	"github.com/gophercloud/gophercloud/pagination"
 )
 
-func GetProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, error) {
-  var projectsListOutput []models.ProjectData
+func SaveProjectsDesc(provider *gophercloud.ProviderClient) error {
   client, err := openstack.NewIdentityV3(provider, gophercloud.EndpointOpts{})
   if err != nil {
-    return nil, err
+    slog.Error("Error creating openstack client", err)
+    return err
   }
 
   listOpts := projects.ListOpts{
@@ -28,13 +29,17 @@ func GetProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, er
   }
   rows, err := projects.List(client, listOpts).AllPages()
   if err != nil {
-    return nil, err
+    slog.Error("Error getting project list", err)
+    return err
   }
 
   projectList, err := projects.ExtractProjects(rows)
   if err != nil {
-    return nil, err
+    slog.Error("Error extracting project list", err)
+    return err
   }
+
+  epoch := time.Now().Unix()
 
   for _, project := range projectList {
     sponsor := project.Description
@@ -43,10 +48,12 @@ func GetProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, er
     if len(match) > 1 {
       sponsor = match[1]
     }
-
-    projectsListOutput = append(projectsListOutput, models.ProjectData{ID: project.ID, Sponsor: sponsor, Name: project.Name})
+    
+    projectToSave := models.ProjectDesc{Timestamp: epoch, ProjectID: project.ID, ProjectName: project.Name, ProjectSponsor: sponsor}
+    models.DB.Create(&projectToSave)
   }
-  return projectsListOutput, nil
+  slog.Info("Projects Descriptions saved on database")
+  return nil
 }
 
 func GetProjectQuota(provider *gophercloud.ProviderClient, projectID string) (*quotasets.QuotaSet, error) {
@@ -102,38 +109,38 @@ func GetProjectUsage(provider *gophercloud.ProviderClient, projectID string) (*m
   return &projectSumUsage, err
 }
 
-func SaveProjectSummary(provider *gophercloud.ProviderClient) error {
-  projects, err := GetProjects(provider)
-  if err != nil {
-    return err
-  }
-
-
-  timestamp := time.Now()
-
-  for _, projectData := range projects {
-    quotas, err := GetProjectQuota(provider, projectData.ID)
-    if err != nil {
-      fmt.Println("[ERROR] Error getting project quota", err)
-      return err
-    }
-
-    projectUsage, err := GetProjectUsage(provider, projectData.ID)
-    if err != nil {
-      fmt.Println("[ERROR] Error getting project usage", err)
-      return err
-    }
-
-    report := models.UsageReport{Timestamp: timestamp, Sponsor: projectData.Sponsor, ProjectName: projectData.Name,
-      VCPUQuota: quotas.Cores, VCPUUsage: projectUsage.VcpuUsage, RAMQuota: quotas.RAM, RAMUsage: projectUsage.RAMUsage}
-
-    models.DB.Create(&report)
-
-  }
-
-  return nil
-
-}
+//func SaveProjectSummary(provider *gophercloud.ProviderClient) error {
+//  projects, err := GetProjects(provider)
+//  if err != nil {
+//    return err
+//  }
+//
+//
+//  timestamp := time.Now()
+//
+//  for _, projectData := range projects {
+//    quotas, err := GetProjectQuota(provider, projectData.ID)
+//    if err != nil {
+//      fmt.Println("[ERROR] Error getting project quota", err)
+//      return err
+//    }
+//
+//    projectUsage, err := GetProjectUsage(provider, projectData.ID)
+//    if err != nil {
+//      fmt.Println("[ERROR] Error getting project usage", err)
+//      return err
+//    }
+//
+//    report := models.UsageReport{Timestamp: timestamp, Sponsor: projectData.Sponsor, ProjectName: projectData.Name,
+//      VCPUQuota: quotas.Cores, VCPUUsage: projectUsage.VcpuUsage, RAMQuota: quotas.RAM, RAMUsage: projectUsage.RAMUsage}
+//
+//    models.DB.Create(&report)
+//
+//  }
+//
+//  return nil
+//
+//}
 
 //func GetSponsorSummary(provider *gophercloud.ProviderClient) (map[string]models.UsageReport, error) {
 //  
