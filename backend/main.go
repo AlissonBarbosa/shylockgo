@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/AlissonBarbosa/shylockgo/common"
 	"github.com/AlissonBarbosa/shylockgo/controllers"
@@ -12,27 +13,32 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+
+
 func main()  {
+  l := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+  slog.SetDefault(l)
+
   models.ConnectDatabase()
 
   provider, err := common.GetProvider()
   if err != nil {
-    fmt.Println("Error getting provider")
+    slog.Error("Error getting provider:", err)
     return
   }
   
   // Populate database on start
-  controllers.SaveProjectSummary(provider)
+  controllers.SaveProjectsDesc(provider)
   controllers.SaveAllServers(provider)
 
 
   c := cron.New()
 
   _, err = c.AddFunc("*/30 * * * *", func(){
-    controllers.SaveProjectSummary(provider)
+    controllers.SaveProjectsDesc(provider)
   })
   if err != nil {
-    fmt.Println("Error adding task", err)
+    slog.Error("Error adding task", err)
     return
   }
 
@@ -40,7 +46,7 @@ func main()  {
     controllers.SaveAllServers(provider)
   })
   if err != nil {
-    fmt.Println("Error adding task", err)
+    slog.Error("Error adding task", err)
     return
   }
 
