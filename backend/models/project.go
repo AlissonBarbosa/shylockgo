@@ -49,7 +49,7 @@ type ProjectQuota struct {
   ProjectID string `json:"project_id"`
   QuotaRam int64 `json:"quota_ram"`
   QuotaVcpu int64 `json:"quota_vcpu"` 
-  QuotaBlockstorage int64 `json:"quota_blockstorage"` 
+  //QuotaBlockstorage int64 `json:"quota_blockstorage"` 
 }
 
 type ProjectQuotaUsage struct {
@@ -58,7 +58,7 @@ type ProjectQuotaUsage struct {
   ProjectID string `json:"project_id"`
   RamUsage int64 `json:"ram_usage"`
   VcpuUsage int64 `json:"vcpu_usage"` 
-  BlockstorageUsage int64 `json:"blockstorage_usage"` 
+  //BlockstorageUsage int64 `json:"blockstorage_usage"` 
 }
 
 type ProjectUsers struct {

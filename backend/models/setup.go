@@ -22,6 +22,8 @@ func ConnectDatabase() {
   }
 
   database.AutoMigrate(&ProjectDesc{})
+  database.AutoMigrate(&ProjectQuota{})
+  database.AutoMigrate(&ProjectQuotaUsage{})
   database.AutoMigrate(&ServerMeta{})
 
   DB = database
