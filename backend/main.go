@@ -30,6 +30,8 @@ func main()  {
   // Populate database on start
   controllers.SaveProjectsDesc(provider)
   controllers.SaveAllServers(provider)
+  controllers.GetProjectQuota(provider)
+  controllers.GetProjectUsage(provider)
 
 
   c := cron.New()
