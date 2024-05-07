@@ -146,7 +146,8 @@ func GetProjectUsage(provider *gophercloud.ProviderClient) error {
     projectSumUsage := models.ProjectQuotaUsage{Timestamp:epoch, ProjectID: project.ID ,VcpuUsage: int64(VCPUSum), RamUsage: int64(MemorySum)}
 
     models.DB.Create(&projectSumUsage)
-    slog.Info("Project quota usage saved on database")
   }
+
+  slog.Info("Project quota usage saved on database")
   return nil
 }

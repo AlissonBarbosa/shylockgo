@@ -29,9 +29,14 @@ func main()  {
   
   // Populate database on start
   controllers.SaveProjectsDesc(provider)
-  controllers.SaveAllServers(provider)
+  //controllers.SaveAllServers(provider)
   controllers.GetProjectQuota(provider)
   controllers.GetProjectUsage(provider)
+  controllers.SaveServersDesc(provider)
+  controllers.SaveServersSpec(provider)
+  controllers.SaveServersUsage(provider)
+  controllers.SaveServersOwnership(provider)
+  
 
 
   c := cron.New()
@@ -44,13 +49,13 @@ func main()  {
     return
   }
 
-  _, err = c.AddFunc("*/31 * * * *", func(){
-    controllers.SaveAllServers(provider)
-  })
-  if err != nil {
-    slog.Error("Error adding task", err)
-    return
-  }
+ // _, err = c.AddFunc("*/31 * * * *", func(){
+ //   controllers.SaveAllServers(provider)
+ // })
+ // if err != nil {
+ //   slog.Error("Error adding task", err)
+ //   return
+ // }
 
   c.Start()
 
@@ -78,22 +83,22 @@ func main()  {
     
   })
 
-  router.GET("/servers", func (c *gin.Context) {
-    var servers []models.ServerMeta
-    servers, err = controllers.GetAllServers(provider)
-    if err != nil {
-      c.JSON(http.StatusInternalServerError, gin.H{
-        "status": "error",
-        "message": "Something wrong on server side",
-      })
-      return
-    }
-    c.JSON(http.StatusOK, gin.H{
-      "status": "success",
-      "data": servers,
-      "message": "Success",
-    })
-  })
+ // router.GET("/servers", func (c *gin.Context) {
+ //   var servers []models.ServerMeta
+ //   servers, err = controllers.GetAllServers(provider)
+ //   if err != nil {
+ //     c.JSON(http.StatusInternalServerError, gin.H{
+ //       "status": "error",
+ //       "message": "Something wrong on server side",
+ //     })
+ //     return
+ //   }
+ //   c.JSON(http.StatusOK, gin.H{
+ //     "status": "success",
+ //     "data": servers,
+ //     "message": "Success",
+ //   })
+ // })
   
   router.Run("0.0.0.0:5000")
 
