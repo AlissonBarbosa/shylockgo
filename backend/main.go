@@ -36,6 +36,8 @@ func main()  {
   controllers.SaveServersSpec(provider)
   controllers.SaveServersUsage(provider)
   controllers.SaveServersOwnership(provider)
+  controllers.SaveFlavorDesc(provider)
+  controllers.SaveFlavorSpec(provider)
   
 
 
