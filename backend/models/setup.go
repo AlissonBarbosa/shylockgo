@@ -31,6 +31,8 @@ func ConnectDatabase() {
   database.AutoMigrate(&ServerOwnership{})
   database.AutoMigrate(&FlavorDesc{})
   database.AutoMigrate(&FlavorSpec{})
+  database.AutoMigrate(&UserDesc{})
+  database.AutoMigrate(&UserProject{})
 
   DB = database
 }
