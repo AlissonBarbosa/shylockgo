@@ -38,6 +38,8 @@ func main()  {
   controllers.SaveServersOwnership(provider)
   controllers.SaveFlavorDesc(provider)
   controllers.SaveFlavorSpec(provider)
+  controllers.SaveUserDesc(provider)
+  controllers.SaveUserProjects(provider)
   
 
 
