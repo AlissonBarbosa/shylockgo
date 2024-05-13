@@ -15,7 +15,7 @@ import (
 	"github.com/gophercloud/gophercloud/pagination"
 )
 
-func GetAllProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, error) {
+func getAllProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData, error) {
   var projectsListOutput []models.ProjectData
   client, err := openstack.NewIdentityV3(provider, gophercloud.EndpointOpts{})
   if err != nil {
@@ -50,12 +50,11 @@ func GetAllProjects(provider *gophercloud.ProviderClient) ([]models.ProjectData,
     projectsListOutput = append(projectsListOutput, models.ProjectData{ID: project.ID, Sponsor: sponsor, Name: project.Name})
   }
 
-  slog.Info("Returning all projects")
   return projectsListOutput, nil
 }
 
 func SaveProjectsDesc(provider *gophercloud.ProviderClient) error {
-  projectList, err := GetAllProjects(provider)
+  projectList, err := getAllProjects(provider)
   if err != nil {
     slog.Error("Error getting all projects", err)
     return err
@@ -70,8 +69,8 @@ func SaveProjectsDesc(provider *gophercloud.ProviderClient) error {
   return nil
 }
 
-func GetProjectQuota(provider *gophercloud.ProviderClient) error {
-  projectList, err := GetAllProjects(provider)
+func SaveProjectQuota(provider *gophercloud.ProviderClient) error {
+  projectList, err := getAllProjects(provider)
   if err != nil {
     slog.Error("Error getting all projects", err)
     return err
@@ -101,8 +100,8 @@ func GetProjectQuota(provider *gophercloud.ProviderClient) error {
   return nil
 }
 
-func GetProjectUsage(provider *gophercloud.ProviderClient) error {
-  projectList, err := GetAllProjects(provider)
+func SaveProjectUsage(provider *gophercloud.ProviderClient) error {
+  projectList, err := getAllProjects(provider)
   if err != nil {
     slog.Error("Error getting all projects", err)
     return err
@@ -144,7 +143,6 @@ func GetProjectUsage(provider *gophercloud.ProviderClient) error {
       return err
     }
     projectSumUsage := models.ProjectQuotaUsage{Timestamp:epoch, ProjectID: project.ID ,VcpuUsage: int64(VCPUSum), RamUsage: int64(MemorySum)}
-
     models.DB.Create(&projectSumUsage)
   }
 

@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 
 services:
   # db:
@@ -11,10 +11,10 @@ services:
   #     - ./backend/data/postgres:/var/lib/postgresql/data
   shylockgo:
     build:
-      context: backend/
-    image: shylockgo:0.0.4
-    container_name: shylockgo
-    hostname: shylockgo
+      context: backend/scraper/
+    image: shylockgo_scraper:0.0.4
+    container_name: scraper_shylockgo
+    hostname: scraper_shylockgo
     restart: always
       # depends_on:
       #   - db
@@ -23,7 +23,7 @@ services:
     ports:
       - 5001:5000
     volumes:
-      - ./backend/data/sqlite/:/var/lib/shylockgo/
+      - ./backend/scraper/data/sqlite/:/var/lib/shylockgo/
         # apache:
         #   image: httpd:latest
         #   container_name: apache
