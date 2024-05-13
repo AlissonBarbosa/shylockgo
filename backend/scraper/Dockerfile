@@ -5,7 +5,7 @@ WORKDIR /shylockgo
 
 COPY . /shylockgo
 
-RUN go get github.com/gin-contrib/cors
+#RUN go get github.com/gin-contrib/cors
 
 RUN go mod tidy
 

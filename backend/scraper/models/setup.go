@@ -24,7 +24,6 @@ func ConnectDatabase() {
   database.AutoMigrate(&ProjectDesc{})
   database.AutoMigrate(&ProjectQuota{})
   database.AutoMigrate(&ProjectQuotaUsage{})
-  database.AutoMigrate(&ServerMeta{})
   database.AutoMigrate(&ServerDesc{})
   database.AutoMigrate(&ServerSpec{})
   database.AutoMigrate(&ServerUsage{})

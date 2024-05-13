@@ -6,9 +6,9 @@ import (
 	//"net/http"
 	"os"
 
-	"github.com/AlissonBarbosa/shylockgo/common"
-	"github.com/AlissonBarbosa/shylockgo/controllers"
-	"github.com/AlissonBarbosa/shylockgo/models"
+	"github.com/AlissonBarbosa/shylockgo/backend/scraper/common"
+	"github.com/AlissonBarbosa/shylockgo/backend/scraper/controllers"
+	"github.com/AlissonBarbosa/shylockgo/backend/scraper/models"
 	//"github.com/gin-contrib/cors"
 	//"github.com/gin-gonic/gin"
 	//"github.com/robfig/cron/v3"
