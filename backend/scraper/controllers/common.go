@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/AlissonBarbosa/shylockgo/models"
+	"github.com/AlissonBarbosa/shylockgo/backend/scraper/models"
 
 )
 

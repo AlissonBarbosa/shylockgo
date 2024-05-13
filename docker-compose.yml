@@ -23,7 +23,7 @@ services:
     ports:
       - 5001:5000
     volumes:
-      - ./backend/scraper/data/sqlite/:/var/lib/shylockgo/
+      - ./backend/data/sqlite/:/var/lib/shylockgo/
         # apache:
         #   image: httpd:latest
         #   container_name: apache
